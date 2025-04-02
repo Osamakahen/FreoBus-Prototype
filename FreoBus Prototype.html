@@ -1,0 +1,493 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Wallet,
+    ShoppingBag,
+    Gamepad2,
+    Music,
+    Users,
+    Search,
+    ArrowRight,
+    LogIn,
+    LogOut,
+    PlusCircle,
+    CheckCircle,
+    XCircle,
+    Menu,
+    X,
+    Github,
+    BookOpen,
+    Zap,
+    Layers3,
+    LayoutDashboard
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
+// Mock Data (Replace with actual data fetching)
+interface DApp {
+    id: string;
+    name: string;
+    category: 'shopping' | 'gaming' | 'social' | 'music' | 'developer' | 'other';
+    description: string;
+    icon: React.ReactNode;
+    url: string; // Add URL for navigation
+    developer?: string; // Optional developer field
+    stars?: number;    // Optional stars for "rating"
+}
+
+const mockDApps: DApp[] = [
+    {
+        id: 'bitrefill',
+        name: 'Bitrefill',
+        category: 'shopping',
+        description: 'Buy gift cards and top up your phone with crypto.',
+        icon: <ShoppingBag />,
+        url: 'https://www.bitrefill.com/',
+        developer: 'Bitrefill',
+        stars: 120
+    },
+    {
+        id: 'decentraland',
+        name: 'Decentraland',
+        category: 'gaming',
+        description: 'Explore, create, and trade in the first-ever virtual world owned by its users.',
+        icon: <Gamepad2 />,
+        url: 'https://decentraland.org/',
+        developer: 'Decentraland Foundation',
+        stars: 345
+    },
+    {
+        id: 'audius',
+        name: 'Audius',
+        category: 'music',
+        description: 'A decentralized music streaming protocol.',
+        icon: <Music />,
+        url: 'https://audius.co/',
+        developer: 'Audius Project',
+        stars: 678
+    },
+    {
+        id: 'lenster',
+        name: 'Lenster',
+        category: 'social',
+        description: 'A decentralized, open-source social media platform.',
+        icon: <Users />,
+        url: 'https://lenster.xyz/',
+        developer: 'Aave Companies',
+        stars: 912
+    },
+    {
+        id: 'opensea',
+        name: 'OpenSea',
+        category: 'other',
+        description: 'The largest NFT marketplace.',
+        icon: <ShoppingBag />, // Changed to shopping bag as there isn't a perfect fit.
+        url: 'https://opensea.io/',
+        developer: 'OpenSea',
+        stars: 567
+    },
+    {
+        id: 'etherscan',
+        name: 'Etherscan',
+        category: 'developer',
+        description: 'Block explorer and analytics platform for Ethereum.',
+        icon: <Search />,
+        url: 'https://etherscan.io',
+        developer: 'Etherscan',
+        stars: 890
+    },
+    {
+        id: 'remix',
+        name: 'Remix IDE',
+        category: 'developer',
+        description: 'Online IDE for Ethereum smart contract development.',
+        icon: <Zap />,
+        url: 'https://remix.ethereum.org',
+        developer: 'Ethereum Foundation',
+        stars: 432
+    }
+];
+
+// Animation Variants
+const dappCardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
+};
+
+const FreoWalletComponent = () => {
+    const [isConnected, setIsConnected] = useState(false);
+    const [account, setAccount] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    // Mock wallet connection
+    const connectWallet = useCallback(() => {
+        setLoading(true);
+        // Simulate an async operation (e.g., connecting to a provider)
+        setTimeout(() => {
+            // In a real app, you would integrate with a library like wagmi or ethers.js
+            setIsConnected(true);
+            setAccount('0x1234567890abcdef'); // Mock account address
+            setLoading(false);
+        }, 1500);
+    }, []);
+
+    const disconnectWallet = useCallback(() => {
+        setIsConnected(false);
+        setAccount(null);
+    }, []);
+
+    // Mock auto-connect (in a real app, you'd check for stored session)
+    useEffect(() => {
+        // Simulate checking for an existing connection
+        const storedConnection = localStorage.getItem('freoWalletConnected');
+        if (storedConnection === 'true') {
+            connectWallet(); // Use the connectWallet function
+        }
+    }, [connectWallet]);
+
+    // Persist connection state (simplified for demo)
+    useEffect(() => {
+        if (isConnected) {
+            localStorage.setItem('freoWalletConnected', 'true');
+        } else {
+            localStorage.removeItem('freoWalletConnected');
+        }
+    }, [isConnected]);
+
+    return (
+        <div className="flex items-center gap-4">
+            {isConnected && account ? (
+                <>
+                    <div className="flex items-center gap-2">
+                        <Wallet className="w-5 h-5 text-green-400" />
+                        <span className="text-sm font-medium text-gray-300 truncate max-w-[150px]">{account}</span>
+                    </div>
+                    <Button
+                        variant="outline"
+                        onClick={disconnectWallet}
+                        className="bg-red-500/20 text-red-400 hover:bg-red-500/30 hover:text-red-300 border-red-500/30"
+                        disabled={loading}
+                    >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Disconnect
+                    </Button>
+                </>
+            ) : (
+                <Button
+                    onClick={connectWallet}
+                    className="bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <>
+                            <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Connecting...
+                        </>
+                    ) : (
+                        <>
+                            <LogIn className="w-4 h-4 mr-2" />
+                            Connect Wallet
+                        </>
+                    )}
+                </Button>
+            )}
+        </div>
+    );
+};
+
+const DAppCard = ({ dapp }: { dapp: DApp }) => {
+    return (
+        <motion.div
+            variants={dappCardVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="w-full"
+        >
+            <Card className="bg-white/5 backdrop-blur-md border border-white/10 hover:border-purple-500/20 shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group">
+                <CardHeader className="flex flex-row items-center gap-4">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-purple-500/20 text-purple-400">
+                        {dapp.icon}
+                    </div>
+                    <CardTitle className="text-lg font-semibold text-white">{dapp.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <CardDescription className="text-gray-400 mb-2">
+                        {dapp.description}
+                    </CardDescription>
+                    {dapp.developer && (
+                        <div className="text-xs text-gray-500 mb-2">
+                            Developer: <span className="font-medium text-gray-300">{dapp.developer}</span>
+                        </div>
+                    )}
+                    {dapp.stars && (
+                        <div className="flex items-center text-sm text-yellow-400 mb-4">
+                            <Github className="w-4 h-4 mr-1" />
+                            {dapp.stars} Stars
+                        </div>
+                    )}
+                    <a href={dapp.url} target="_blank" rel="noopener noreferrer">
+                        <Button
+                            variant="outline"
+                            className="w-full bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 hover:text-purple-200 border-purple-500/30
+                                       transition-colors duration-300 group-hover:scale-105"
+                        >
+                            Visit <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                    </a>
+                </CardContent>
+            </Card>
+        </motion.div>
+    );
+};
+
+const FreoBusApp = () => {
+    const [dApps, setDApps] = useState<DApp[]>(mockDApps);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [showGettingStarted, setShowGettingStarted] = useState(true); // Added state for "Getting Started"
+
+    const categories = ['shopping', 'gaming', 'social', 'music', 'developer', 'other'];
+
+    const handleSearch = (query: string) => {
+        setSearchQuery(query);
+    };
+
+    const filteredDApps = dApps.filter((dApp) => {
+        const searchMatch =
+            dApp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            dApp.description.toLowerCase().includes(searchQuery.toLowerCase());
+        const categoryMatch = !selectedCategory || dApp.category === selectedCategory;
+        return searchMatch && categoryMatch;
+    });
+
+    // Function to dismiss the "Getting Started" guide
+    const dismissGettingStarted = () => {
+        setShowGettingStarted(false);
+        localStorage.setItem('freoBusGettingStarted', 'dismissed'); // Persist dismissal
+    };
+
+    // Check localStorage on component mount
+    useEffect(() => {
+        const isDismissed = localStorage.getItem('freoBusGettingStarted');
+        if (isDismissed === 'dismissed') {
+            setShowGettingStarted(false);
+        }
+    }, []);
+
+    // Define the logo as a React component
+    const FreoBusLogo = () => (
+        <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M25 45C36.0457 45 45 36.0457 45 25C45 13.9543 36.0457 5 25 5C13.9543 5 5 13.9543 5 25C5 36.0457 13.9543 45 25 45Z" fill="#8B5CF6"/>
+            <path d="M15.625 31.25H34.375V18.75H15.625V31.25Z" fill="#A855F7"/>
+            <path d="M25 18.75V31.25" stroke="#F9A8D4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+    );
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black p-4 md:p-8">
+            <div className="max-w-7xl mx-auto">
+                {/* Header */}
+                <header className="flex items-center justify-between py-4 md:py-6">
+                    <div className="flex items-center gap-2">
+                        {/* Include the logo here */}
+                        <FreoBusLogo />
+                        <h1 className="text-3xl font-bold text-white">
+                            <span className="bg-gradient-to-r from-purple-400 to-pink-400 text-transparent bg-clip-text">
+                                FreoBus
+                            </span>
+                        </h1>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <Input
+                            type="text"
+                            placeholder="Search dApps..."
+                            value={searchQuery}
+                            onChange={(e) => handleSearch(e.target.value)}
+                            className="w-48 md:w-64 bg-black/20 text-white border-purple-500/30 placeholder:text-gray-500"
+                        />
+                        {/* Fix: Ensure FreoWalletComponent is rendered here */}
+                        <FreoWalletComponent />
+                        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" className="md:hidden text-gray-300 hover:text-white">
+                                    <Menu className="h-6 w-6" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="w-full sm:w-[300px] bg-gray-900 text-white">
+                                <SheetHeader>
+                                    <SheetTitle>Categories</SheetTitle>
+                                    <SheetDescription>
+                                        Explore dApps by category.
+                                    </SheetDescription>
+                                </SheetHeader>
+                                <div className="mt-6 space-y-4">
+                                    {categories.map((category) => (
+                                        <Button
+                                            key={category}
+                                            variant={selectedCategory === category ? 'default' : 'ghost'}
+                                            onClick={() => {
+                                                setSelectedCategory(selectedCategory === category ? null : category);
+                                                setIsMobileMenuOpen(false); // Close menu after selection
+                                            }}
+                                            className={cn(
+                                                "w-full justify-start",
+                                                selectedCategory === category
+                                                    ? "bg-purple-500/20 text-purple-300"
+                                                    : "text-gray-300 hover:text-white hover:bg-white/5"
+                                            )}
+                                        >
+                                            {category.charAt(0).toUpperCase() + category.slice(1)}
+                                        </Button>
+                                    ))}
+                                    {selectedCategory && (
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => {
+                                                setSelectedCategory(null)
+                                                setIsMobileMenuOpen(false);
+                                            }}
+                                            className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5"
+                                        >
+                                            <XCircle className="w-4 h-4 mr-2" />
+                                            Clear Filter
+                                        </Button>
+                                    )}
+                                </div>
+                            </SheetContent>
+                        </Sheet>
+                    </div>
+                </header>
+
+                {/* Main Content */}
+                <main className="py-6 md:py-8">
+                    {/* Getting Started Guide */}
+                    <AnimatePresence>
+                        {showGettingStarted && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="mb-8"
+                            >
+                                <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-md border border-white/10 shadow-lg">
+                                    <CardHeader className="flex flex-row items-center justify-between">
+                                        <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
+                                            <Zap className="w-5 h-5 text-yellow-400" />
+                                            Getting Started with FreoBus
+                                        </CardTitle>
+                                        <Button
+                                            variant="ghost"
+                                            onClick={dismissGettingStarted}
+                                            className="text-gray-400 hover:text-white"
+                                        >
+                                            <XCircle className="w-5 h-5" />
+                                        </Button>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-gray-400 mb-4">
+                                            Welcome to FreoBus, your gateway to the decentralized web!  Here's how to get started:
+                                        </p>
+                                        <ol className="list-decimal list-inside space-y-2 text-gray-300">
+                                            <li><span className="font-medium text-white">Connect Your Wallet:</span> Click the "Connect Wallet" button in the header.</li>
+                                            <li><span className="font-medium text-white">Explore dApps:</span>  Browse the categories or use the search bar to find dApps.</li>
+                                            <li><span className="font-medium text-white">Interact:</span> Click on a dApp card to visit its website and start exploring.</li>
+                                        </ol>
+                                        <div className="mt-4 pt-4 border-t border-white/10">
+                                            <Button
+                                                variant="outline"
+                                                onClick={dismissGettingStarted}
+                                                className="bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 hover:text-purple-200 border-purple-500/30"
+                                            >
+                                                <CheckCircle className="w-4 h-4 mr-2" />
+                                                Got it!
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Category Filter (Desktop) */}
+                    <div className="hidden md:flex items-center gap-4 mb-8">
+                        <span className="text-gray-400">Categories:</span>
+                        <Tabs defaultValue="shopping" className="w-full">
+                            <TabsList className="grid w-full grid-cols-5 bg-transparent">
+                                {categories.map((category) => (
+                                    <TabsTrigger
+                                        key={category}
+                                        value={category}
+                                        onClick={() => setSelectedCategory(category)}
+                                        className={cn(
+                                            "text-gray-300 hover:text-white data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-300",
+                                            "transition-colors duration-200",
+                                            "inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 rounded-md font-medium ring-0",
+                                            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-500/50"
+                                        )}
+                                    >
+                                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                                    </TabsTrigger>
+                                ))}
+                            </TabsList>
+                        </Tabs>
+                        {selectedCategory && (
+                            <Button
+                                variant="outline"
+                                onClick={() => setSelectedCategory(null)}
+                                className="text-gray-300 hover:text-white hover:bg-white/5 border-white/10"
+                            >
+                                <XCircle className="w-4 h-4 mr-2" />
+                                Clear Filter
+                            </Button>
+                        )}
+                    </div>
+
+                    {/* DApp Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <AnimatePresence>
+                            {filteredDApps.length > 0 ? (
+                                filteredDApps.map((dApp) => (
+                                    <DAppCard key={dApp.id} dapp={dApp} />
+                                ))
+                            ) : (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="col-span-full text-center text-gray-400 py-12"
+                                >
+                                    No dApps found matching your criteria.
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </main>
+
+                {/* Footer */}
+                <footer className="py-4 md:py-6 text-center text-gray-400 border-t border-white/10 flex flex-col md:flex-row items-center justify-center gap-4">
+                    <div>© {new Date().getFullYear()} FreoBus. All rights reserved.</div>
+                    <div className="flex items-center gap-4">
+                        <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                            <Github className="w-5 h-5" />
+                        </a>
+                        <a href="https://docs.github.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                            <BookOpen className="w-5 h-5" />
+                        </a>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    );
+};
+
+export default FreoBusApp;
